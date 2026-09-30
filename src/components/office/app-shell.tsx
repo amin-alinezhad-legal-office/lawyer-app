@@ -1,5 +1,6 @@
 "use client";
 
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,6 +21,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const canSearch = nav.some((item) => item.href === "/app/search");
 
   useEffect(() => {
     setOpen(false);
@@ -48,14 +50,15 @@ export function AppShell({
             <p className="text-xs font-light text-secondary">{roleName}</p>
           </div>
           <div className="flex items-center gap-2">
-            {nav.some((item) => item.href === "/app/search") ? (
-              <Link href="/app/search" className="btn border border-line px-3 py-2 text-xs font-bold">
-                جستجو
+            {canSearch ? (
+              <Link
+                href="/app/search"
+                aria-label="جستجو"
+                className="inline-flex h-10 w-10 items-center justify-center border border-line text-navy transition-colors hover:bg-mist"
+              >
+                <Search className="h-4 w-4" strokeWidth={2.25} aria-hidden />
               </Link>
             ) : null}
-            <Link href="/app/profile" className="btn border border-line px-3 py-2 text-xs font-bold">
-              پروفایل
-            </Link>
             <button
               type="button"
               className="border border-line px-3 py-2 text-xs font-bold"
@@ -65,11 +68,6 @@ export function AppShell({
             >
               فهرست
             </button>
-            <form action={logoutApp} className="hidden md:block">
-              <button type="submit" className="text-xs font-bold text-secondary">
-                خروج
-              </button>
-            </form>
           </div>
         </div>
       </header>
@@ -127,7 +125,7 @@ export function AppShell({
               );
             })}
           </ul>
-          <form action={logoutApp} className="mt-4 border-t border-white/15 px-1 pt-4 md:hidden">
+          <form action={logoutApp} className="mt-4 border-t border-white/15 px-1 pt-4">
             <button type="submit" className="w-full px-3 py-3 text-start text-sm font-bold text-white/80">
               خروج
             </button>
