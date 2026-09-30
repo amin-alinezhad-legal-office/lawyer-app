@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logoutApp } from "@/app/app/actions";
+import { InstallAppButton } from "@/components/office/install-app-button";
 import type { AppNavItem } from "@/lib/office";
 
 export function AppShell({
@@ -29,6 +30,7 @@ export function AppShell({
             <p className="text-xs font-light text-secondary">{roleName}</p>
           </div>
           <div className="flex items-center gap-2">
+            <InstallAppButton />
             {nav.some((item) => item.href === "/app/search") ? (
               <Link href="/app/search" className="btn border border-line px-3 py-2 text-xs font-bold">
                 جستجو

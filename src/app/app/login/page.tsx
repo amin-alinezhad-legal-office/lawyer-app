@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { loginApp } from "@/app/app/actions";
+import { InstallAppButton } from "@/components/office/install-app-button";
 import { PasswordField } from "@/components/office/password-field";
+import { RegisterSW } from "@/components/office/register-sw";
 import { getLoginGate } from "@/db/rbac";
 import { isAppAuthed } from "@/lib/auth";
 import { createCaptchaChallenge } from "@/lib/captcha";
@@ -58,6 +60,7 @@ export default async function AppLoginPage({
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-[#13284f] text-white">
+      <RegisterSW />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.35]"
@@ -199,6 +202,13 @@ export default async function AppLoginPage({
             <p className="mt-6 text-xs font-light leading-6 text-white/55">
               بعد از سه ورود ناموفق، جمع امنیتی فعال می‌شود. حساب تازه فقط از داخل پنل ساخته می‌شود.
             </p>
+
+            <div className="mt-5">
+              <InstallAppButton
+                label="ذخیره اپ روی دستگاه"
+                className="btn w-full border border-white/25 bg-white/10 px-5 py-3.5 text-sm font-bold text-white transition-opacity hover:bg-white/15"
+              />
+            </div>
           </div>
 
           <p className="mt-6 text-center text-xs font-light text-white/45 md:text-start">
