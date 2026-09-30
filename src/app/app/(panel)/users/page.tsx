@@ -53,7 +53,7 @@ export default async function UsersPage({
             <input id="password" name="password" type="password" required className="field" />
           </OfficeField>
           <OfficeField label="نقش" name="roleId">
-            <select id="roleId" name="roleId" required className="field">
+            <select id="roleId" name="roleId" required className="select">
               {roleRows.map((role) => (
                 <option key={role.id} value={role.id}>
                   {role.name}
@@ -70,72 +70,110 @@ export default async function UsersPage({
       {rows.length === 0 ? (
         <EmptyState>کاربری نیست.</EmptyState>
       ) : (
-        <div className="space-y-4">
-          {rows.map((row) => (
-            <form
-              key={row.id}
-              action={updateUserAction}
-              className="space-y-4 border border-line bg-white p-5"
-            >
-              <input type="hidden" name="id" value={row.id} />
-              <p className="text-xs font-light text-secondary ltr-isolate" dir="ltr">
-                {row.phone}
-              </p>
-              <OfficeField label="نام" name="fullName">
-                <input
-                  id={`name-${row.id}`}
-                  name="fullName"
-                  required
-                  className="field"
-                  defaultValue={row.fullName}
-                  disabled={!canWrite}
-                />
-              </OfficeField>
-              <OfficeField label="نقش" name="roleId">
-                <select
-                  id={`role-${row.id}`}
-                  name="roleId"
-                  required
-                  className="field"
-                  defaultValue={row.roleId}
-                  disabled={!canWrite}
+        <section className="space-y-3">
+          <h2 className="text-lg font-extrabold">کاربران موجود</h2>
+          <p className="text-sm font-light text-secondary">برای ویرایش، هر کاربر را باز کنید.</p>
+          <div className="space-y-3">
+            {rows.map((row) => (
+              <details key={row.id} className="panel-details group border border-line bg-white">
+                <summary className="flex cursor-pointer items-center justify-between gap-4 px-5 py-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-extrabold">{row.fullName}</p>
+                      <span
+                        className={`rounded-[0.3rem] px-2 py-0.5 text-[0.65rem] font-bold ${
+                          row.active ? "bg-mist text-navy" : "bg-line/40 text-secondary"
+                        }`}
+                      >
+                        {row.active ? "فعال" : "غیرفعال"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-light text-secondary">
+                      {row.roleName}
+                      <span className="mx-2 text-line">·</span>
+                      <span className="ltr-isolate" dir="ltr">
+                        {row.phone}
+                      </span>
+                    </p>
+                  </div>
+                  <span
+                    aria-hidden
+                    className="panel-details-chevron shrink-0 text-secondary transition-transform duration-200"
+                  >
+                    ▾
+                  </span>
+                </summary>
+                <form
+                  action={updateUserAction}
+                  className="space-y-4 border-t border-line p-5"
                 >
-                  {roleRows.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
-                    </option>
-                  ))}
-                </select>
-              </OfficeField>
-              {canWrite ? (
-                <OfficeField label="رمز تازه (اختیاری)" name="password">
-                  <input
-                    id={`pass-${row.id}`}
-                    name="password"
-                    type="password"
-                    className="field"
-                    placeholder="خالی بگذارید اگر عوض نمی‌شود"
-                  />
-                </OfficeField>
-              ) : null}
-              <label className="flex items-center gap-2 text-sm font-bold">
-                <input
-                  type="checkbox"
-                  name="active"
-                  value="1"
-                  defaultChecked={row.active}
-                  disabled={!canWrite}
-                />
-                فعال
-              </label>
-              {canWrite ? (
-                <button type="submit" className="border border-line px-4 py-2 text-sm font-bold">
-                  ذخیره
-                </button>
-              ) : null}
-            </form>
-          ))}
-        </div>
+                  <input type="hidden" name="id" value={row.id} />
+                  <OfficeField label="نام" name="fullName">
+                    <input
+                      id={`name-${row.id}`}
+                      name="fullName"
+                      required
+                      className="field"
+                      defaultValue={row.fullName}
+                      disabled={!canWrite}
+                    />
+                  </OfficeField>
+                  <OfficeField label="موبایل (غیرقابل تغییر)" name="phone">
+                    <input
+                      className="field ltr-isolate"
+                      dir="ltr"
+                      value={row.phone}
+                      disabled
+                      readOnly
+                    />
+                  </OfficeField>
+                  <OfficeField label="نقش" name="roleId">
+                    <select
+                      id={`role-${row.id}`}
+                      name="roleId"
+                      required
+                      className="select"
+                      defaultValue={row.roleId}
+                      disabled={!canWrite}
+                    >
+                      {roleRows.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </OfficeField>
+                  {canWrite ? (
+                    <OfficeField label="رمز تازه (اختیاری)" name="password">
+                      <input
+                        id={`pass-${row.id}`}
+                        name="password"
+                        type="password"
+                        className="field"
+                        placeholder="خالی بگذارید اگر عوض نمی‌شود"
+                      />
+                    </OfficeField>
+                  ) : null}
+                  <label className="flex items-center gap-2 text-sm font-bold">
+                    <input
+                      type="checkbox"
+                      name="active"
+                      value="1"
+                      defaultChecked={row.active}
+                      disabled={!canWrite}
+                    />
+                    فعال
+                  </label>
+                  {canWrite ? (
+                    <button type="submit" className="border border-line px-4 py-2 text-sm font-bold">
+                      ذخیره
+                    </button>
+                  ) : null}
+                </form>
+              </details>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

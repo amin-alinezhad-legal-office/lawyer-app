@@ -34,6 +34,9 @@ export default async function RolesPage({
     );
   }
 
+  const systemRoles = roleRows.filter((role) => role.isSystem);
+  const customRoles = roleRows.filter((role) => !role.isSystem);
+
   return (
     <div className="space-y-8">
       <div>
@@ -73,81 +76,151 @@ export default async function RolesPage({
         </form>
       ) : null}
 
-      <div className="space-y-4">
-        {roleRows.map((role) => {
-          const selected = new Set(rolePerms.get(role.id) ?? []);
-          return (
-            <form
+      {customRoles.length > 0 ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-extrabold">نقش‌های سفارشی</h2>
+          {customRoles.map((role) => (
+            <RoleEditor
               key={role.id}
-              action={updateRoleAction}
-              className="space-y-4 border border-line bg-white p-5"
-            >
-              <input type="hidden" name="id" value={role.id} />
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-light text-secondary ltr-isolate" dir="ltr">
-                  {role.slug}
-                  {role.isSystem ? " · سیستمی" : ""}
-                </p>
-                {canWrite && !role.isSystem ? (
-                  <button
-                    formAction={deleteRoleAction}
-                    type="submit"
-                    className="text-xs font-bold text-secondary"
+              role={role}
+              permissions={permRows}
+              selected={new Set(rolePerms.get(role.id) ?? [])}
+              canWrite={canWrite}
+            />
+          ))}
+        </section>
+      ) : null}
+
+      {systemRoles.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-extrabold">نقش‌های از پیش تعریف‌شده</h2>
+          <p className="text-sm font-light text-secondary">برای ویرایش، هر مورد را باز کنید.</p>
+          <div className="space-y-3">
+            {systemRoles.map((role) => (
+              <details key={role.id} className="panel-details group border border-line bg-white">
+                <summary className="flex cursor-pointer items-center justify-between gap-4 px-5 py-4">
+                  <div className="min-w-0">
+                    <p className="font-extrabold">{role.name}</p>
+                    <p className="mt-1 truncate text-xs font-light text-secondary ltr-isolate" dir="ltr">
+                      {role.slug} · سیستمی
+                      {role.allAccess ? " · دسترسی کامل" : ""}
+                    </p>
+                  </div>
+                  <span
+                    aria-hidden
+                    className="panel-details-chevron shrink-0 text-secondary transition-transform duration-200"
                   >
-                    حذف
-                  </button>
-                ) : null}
-              </div>
-              <OfficeField label="نام" name="name">
-                <input
-                  id={`name-${role.id}`}
-                  name="name"
-                  required
-                  className="field"
-                  defaultValue={role.name}
-                  disabled={!canWrite}
-                />
-              </OfficeField>
-              <OfficeField label="توضیح" name="description">
-                <textarea
-                  id={`desc-${role.id}`}
-                  name="description"
-                  rows={2}
-                  className="field resize-y"
-                  defaultValue={role.description}
-                  disabled={!canWrite}
-                />
-              </OfficeField>
-              <label className="flex items-center gap-2 text-sm font-bold">
-                <input
-                  type="checkbox"
-                  name="allAccess"
-                  value="1"
-                  defaultChecked={role.allAccess}
-                  disabled={!canWrite}
-                />
-                دسترسی کامل
-              </label>
-              {!role.allAccess ? (
-                <PermissionPicker
-                  permissions={permRows}
-                  selected={selected}
-                  disabled={!canWrite}
-                  idPrefix={role.id}
-                />
-              ) : (
-                <p className="text-sm font-light text-secondary">این نقش به همه دسترسی‌ها وصل است.</p>
-              )}
-              {canWrite ? (
-                <button type="submit" className="border border-line px-4 py-2 text-sm font-bold">
-                  ذخیره نقش
-                </button>
-              ) : null}
-            </form>
-          );
-        })}
-      </div>
+                    ▾
+                  </span>
+                </summary>
+                <div className="border-t border-line p-5">
+                  <RoleEditor
+                    role={role}
+                    permissions={permRows}
+                    selected={new Set(rolePerms.get(role.id) ?? [])}
+                    canWrite={canWrite}
+                    bare
+                  />
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
+  );
+}
+
+function RoleEditor({
+  role,
+  permissions,
+  selected,
+  canWrite,
+  bare = false,
+}: {
+  role: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    allAccess: boolean;
+    isSystem: boolean;
+  };
+  permissions: { id: string; key: string; label: string; division: string }[];
+  selected: Set<string>;
+  canWrite: boolean;
+  bare?: boolean;
+}) {
+  return (
+    <form
+      action={updateRoleAction}
+      className={bare ? "space-y-4" : "space-y-4 border border-line bg-white p-5"}
+    >
+      <input type="hidden" name="id" value={role.id} />
+      {!bare ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs font-light text-secondary ltr-isolate" dir="ltr">
+            {role.slug}
+          </p>
+          {canWrite && !role.isSystem ? (
+            <button formAction={deleteRoleAction} type="submit" className="text-xs font-bold text-secondary">
+              حذف
+            </button>
+          ) : null}
+        </div>
+      ) : canWrite && !role.isSystem ? (
+        <div className="flex justify-end">
+          <button formAction={deleteRoleAction} type="submit" className="text-xs font-bold text-secondary">
+            حذف
+          </button>
+        </div>
+      ) : null}
+      <OfficeField label="نام" name="name">
+        <input
+          id={`name-${role.id}`}
+          name="name"
+          required
+          className="field"
+          defaultValue={role.name}
+          disabled={!canWrite}
+        />
+      </OfficeField>
+      <OfficeField label="توضیح" name="description">
+        <textarea
+          id={`desc-${role.id}`}
+          name="description"
+          rows={2}
+          className="field resize-y"
+          defaultValue={role.description}
+          disabled={!canWrite}
+        />
+      </OfficeField>
+      <label className="flex items-center gap-2 text-sm font-bold">
+        <input
+          type="checkbox"
+          name="allAccess"
+          value="1"
+          defaultChecked={role.allAccess}
+          disabled={!canWrite}
+        />
+        دسترسی کامل
+      </label>
+      {!role.allAccess ? (
+        <PermissionPicker
+          permissions={permissions}
+          selected={selected}
+          disabled={!canWrite}
+          idPrefix={role.id}
+        />
+      ) : (
+        <p className="text-sm font-light text-secondary">این نقش به همه دسترسی‌ها وصل است.</p>
+      )}
+      {canWrite ? (
+        <button type="submit" className="border border-line px-4 py-2 text-sm font-bold">
+          ذخیره نقش
+        </button>
+      ) : null}
+    </form>
   );
 }
 

@@ -30,7 +30,7 @@ export default async function NewArchivePage({
           <textarea id="body" name="body" rows={6} className="field resize-y" />
         </OfficeField>
         <OfficeField label="پیوند به پرونده" name="caseId">
-          <select id="caseId" name="caseId" className="field bg-white" defaultValue="">
+          <select id="caseId" name="caseId" className="select" defaultValue="">
             <option value="">بدون پرونده</option>
             {cases.map((item) => (
               <option key={item.id} value={item.id}>

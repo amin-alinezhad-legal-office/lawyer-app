@@ -62,7 +62,7 @@ export default async function CaseDetailPage({
           />
         </OfficeField>
         <OfficeField label="وضعیت" name="status">
-          <select id="status" name="status" className="field bg-white" defaultValue={row.status}>
+          <select id="status" name="status" className="select" defaultValue={row.status}>
             {caseStatuses.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}

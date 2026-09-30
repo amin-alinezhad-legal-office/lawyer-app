@@ -49,7 +49,7 @@ export function MatterSelect({
       <button
         id={name}
         type="button"
-        className="field flex w-full items-center justify-between gap-4 bg-transparent text-start"
+        className="flex w-full items-center justify-between gap-4 rounded-[0.4rem] border border-line bg-white px-4 py-3 text-start font-inherit text-navy"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
@@ -59,7 +59,10 @@ export function MatterSelect({
         <span className={selected ? "text-navy" : "text-secondary"}>
           {selected?.title ?? "انتخاب کنید"}
         </span>
-        <span aria-hidden className={`text-secondary transition-transform ${open ? "rotate-180" : ""}`}>
+        <span
+          aria-hidden
+          className={`text-secondary transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        >
           ▾
         </span>
       </button>
@@ -68,7 +71,7 @@ export function MatterSelect({
           id={listId}
           role="listbox"
           aria-label="موضوع"
-          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 border border-line bg-white shadow-[0_18px_40px_rgba(26,53,113,0.12)]"
+          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 overflow-hidden rounded-[0.4rem] border border-line bg-white shadow-[0_18px_40px_rgba(26,53,113,0.12)]"
         >
           {topics.map((matter) => {
             const active = matter.slug === value;

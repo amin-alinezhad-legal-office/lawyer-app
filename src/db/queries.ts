@@ -1,20 +1,26 @@
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "./index";
 import {
   aboutPage,
   aboutSections,
+  appointments,
   archiveItems,
   caseNotes,
   cases,
+  clients,
   formTopics,
   inquiries,
+  inquiryNotes,
+  junkPhones,
   letters,
+  officeTasks,
   personalNotes,
   reminders,
   siteNotes,
 } from "./schema";
 import { notes as staticNotes, type Note } from "@/lib/notes";
 import { defaultAboutContent, type AboutContent } from "@/lib/about";
+import { normalizePhone } from "@/lib/format";
 import { defaultMatters, type MatterTopic } from "@/lib/site";
 
 function asDate(value: Date | string) {
@@ -76,10 +82,356 @@ export async function listInquiries() {
   return db.select().from(inquiries).orderBy(desc(inquiries.createdAt));
 }
 
+export async function getInquiry(id: string) {
+  const db = getDb();
+  if (!db) return null;
+  const [row] = await db.select().from(inquiries).where(eq(inquiries.id, id)).limit(1);
+  return row ?? null;
+}
+
+export async function listInquiryNotes(inquiryId: string) {
+  const db = getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(inquiryNotes)
+    .where(eq(inquiryNotes.inquiryId, inquiryId))
+    .orderBy(desc(inquiryNotes.createdAt));
+}
+
+export async function listInquiryNotesByIds(inquiryIds: string[]) {
+  const db = getDb();
+  if (!db || inquiryIds.length === 0) return [] as (typeof inquiryNotes.$inferSelect)[];
+  return db
+    .select()
+    .from(inquiryNotes)
+    .where(inArray(inquiryNotes.inquiryId, inquiryIds))
+    .orderBy(desc(inquiryNotes.createdAt));
+}
+
+export async function isJunkPhone(phoneRaw: string) {
+  const db = getDb();
+  if (!db) return false;
+  const phone = normalizePhone(phoneRaw);
+  const [row] = await db.select().from(junkPhones).where(eq(junkPhones.phone, phone)).limit(1);
+  return Boolean(row);
+}
+
+export async function listJunkPhonesSet(phones: string[]) {
+  const db = getDb();
+  if (!db || phones.length === 0) return new Set<string>();
+  const normalized = [...new Set(phones.map(normalizePhone).filter(Boolean))];
+  if (normalized.length === 0) return new Set<string>();
+  const rows = await db.select().from(junkPhones).where(inArray(junkPhones.phone, normalized));
+  return new Set(rows.map((row) => row.phone));
+}
+
 export async function setInquiryStatus(id: string, status: string) {
   const db = getDb();
   if (!db) throw new Error("no db");
-  await db.update(inquiries).set({ status }).where(eq(inquiries.id, id));
+  await db
+    .update(inquiries)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(inquiries.id, id));
+}
+
+export async function updateInquiryFields(
+  id: string,
+  input: {
+    status?: string;
+    conclusion?: string;
+    closedAt?: Date | null;
+    closedBy?: string | null;
+  },
+) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db
+    .update(inquiries)
+    .set({ ...input, updatedAt: new Date() })
+    .where(eq(inquiries.id, id));
+}
+
+export async function addInquiryNote(input: {
+  inquiryId: string;
+  body: string;
+  createdBy?: string | null;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db.insert(inquiryNotes).values({
+    inquiryId: input.inquiryId,
+    body: input.body,
+    createdBy: input.createdBy ?? null,
+  });
+  await db
+    .update(inquiries)
+    .set({ updatedAt: new Date() })
+    .where(eq(inquiries.id, input.inquiryId));
+}
+
+export async function markPhoneAsJunk(input: {
+  phone: string;
+  reason?: string;
+  createdBy?: string | null;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  const phone = normalizePhone(input.phone);
+  const existing = await db.select().from(junkPhones).where(eq(junkPhones.phone, phone)).limit(1);
+  if (existing.length === 0) {
+    await db.insert(junkPhones).values({
+      phone,
+      reason: input.reason ?? "",
+      createdBy: input.createdBy ?? null,
+    });
+  }
+}
+
+export async function deleteInquiry(id: string) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db.delete(inquiries).where(eq(inquiries.id, id));
+}
+
+export async function listOfficeTasks() {
+  const db = getDb();
+  if (!db) return [];
+  return db.select().from(officeTasks).orderBy(asc(officeTasks.status), desc(officeTasks.createdAt));
+}
+
+export async function createOfficeTask(input: {
+  title: string;
+  body?: string;
+  dueAt?: Date | null;
+  inquiryId?: string | null;
+  createdBy?: string | null;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  const [row] = await db
+    .insert(officeTasks)
+    .values({
+      title: input.title,
+      body: input.body ?? "",
+      dueAt: input.dueAt ?? null,
+      inquiryId: input.inquiryId ?? null,
+      createdBy: input.createdBy ?? null,
+      status: "open",
+    })
+    .returning();
+  return row;
+}
+
+export async function setOfficeTaskDone(id: string, done: boolean) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db
+    .update(officeTasks)
+    .set({ status: done ? "done" : "open", updatedAt: new Date() })
+    .where(eq(officeTasks.id, id));
+}
+
+export async function deleteOfficeTask(id: string) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db.delete(officeTasks).where(eq(officeTasks.id, id));
+}
+
+export async function listClients() {
+  const db = getDb();
+  if (!db) return [];
+  return db.select().from(clients).orderBy(asc(clients.fullName));
+}
+
+export async function getClient(id: string) {
+  const db = getDb();
+  if (!db) return null;
+  const [row] = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
+  return row ?? null;
+}
+
+export async function createClient(input: {
+  fullName: string;
+  phone: string;
+  email?: string | null;
+  notes?: string;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  const phone = normalizePhone(input.phone);
+  const [row] = await db
+    .insert(clients)
+    .values({
+      fullName: input.fullName.trim(),
+      phone,
+      email: input.email?.trim() || null,
+      notes: input.notes?.trim() || "",
+    })
+    .returning();
+  return row;
+}
+
+export async function updateClient(
+  id: string,
+  input: { fullName: string; email?: string | null; notes?: string },
+) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db
+    .update(clients)
+    .set({
+      fullName: input.fullName.trim(),
+      email: input.email?.trim() || null,
+      notes: input.notes?.trim() || "",
+      updatedAt: new Date(),
+    })
+    .where(eq(clients.id, id));
+}
+
+export async function deleteClient(id: string) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db.delete(clients).where(eq(clients.id, id));
+}
+
+/** Find موکل by phone or create one. Phone stays the stable identity. */
+export async function findOrCreateClient(input: {
+  fullName: string;
+  phone: string;
+  email?: string | null;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  const phone = normalizePhone(input.phone);
+  const [existing] = await db.select().from(clients).where(eq(clients.phone, phone)).limit(1);
+  if (existing) {
+    if (input.fullName.trim() && input.fullName.trim() !== existing.fullName) {
+      await db
+        .update(clients)
+        .set({
+          fullName: input.fullName.trim(),
+          email: input.email?.trim() || existing.email,
+          updatedAt: new Date(),
+        })
+        .where(eq(clients.id, existing.id));
+      const [updated] = await db.select().from(clients).where(eq(clients.id, existing.id)).limit(1);
+      return updated ?? existing;
+    }
+    return existing;
+  }
+  return createClient(input);
+}
+
+export async function listAppointments() {
+  const db = getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: appointments.id,
+      title: appointments.title,
+      body: appointments.body,
+      startsAt: appointments.startsAt,
+      clientId: appointments.clientId,
+      clientName: appointments.clientName,
+      clientPhone: appointments.clientPhone,
+      minutes: appointments.minutes,
+      status: appointments.status,
+      inquiryId: appointments.inquiryId,
+      createdBy: appointments.createdBy,
+      createdAt: appointments.createdAt,
+      updatedAt: appointments.updatedAt,
+      clientFullName: clients.fullName,
+      clientNotes: clients.notes,
+    })
+    .from(appointments)
+    .innerJoin(clients, eq(appointments.clientId, clients.id))
+    .orderBy(asc(appointments.startsAt));
+}
+
+export async function listAppointmentsForClient(clientId: string) {
+  const db = getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(appointments)
+    .where(eq(appointments.clientId, clientId))
+    .orderBy(desc(appointments.startsAt));
+}
+
+export async function createAppointment(input: {
+  title: string;
+  body?: string;
+  startsAt: Date;
+  clientId: string;
+  minutes?: string;
+  inquiryId?: string | null;
+  createdBy?: string | null;
+}) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  const client = await getClient(input.clientId);
+  if (!client) throw new Error("client required");
+  const [row] = await db
+    .insert(appointments)
+    .values({
+      title: input.title,
+      body: input.body ?? "",
+      startsAt: input.startsAt,
+      clientId: client.id,
+      clientName: client.fullName,
+      clientPhone: client.phone,
+      minutes: input.minutes ?? "",
+      inquiryId: input.inquiryId ?? null,
+      createdBy: input.createdBy ?? null,
+      status: "scheduled",
+    })
+    .returning();
+  return row;
+}
+
+export async function updateAppointment(
+  id: string,
+  input: {
+    title?: string;
+    body?: string;
+    startsAt?: Date;
+    clientId?: string;
+    minutes?: string;
+    status?: string;
+  },
+) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  const patch: Record<string, unknown> = { updatedAt: new Date() };
+  if (input.title !== undefined) patch.title = input.title;
+  if (input.body !== undefined) patch.body = input.body;
+  if (input.startsAt !== undefined) patch.startsAt = input.startsAt;
+  if (input.minutes !== undefined) patch.minutes = input.minutes;
+  if (input.status !== undefined) patch.status = input.status;
+  if (input.clientId) {
+    const client = await getClient(input.clientId);
+    if (!client) throw new Error("client required");
+    patch.clientId = client.id;
+    patch.clientName = client.fullName;
+    patch.clientPhone = client.phone;
+  }
+  await db.update(appointments).set(patch).where(eq(appointments.id, id));
+}
+
+export async function setAppointmentStatus(id: string, status: string) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db
+    .update(appointments)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(appointments.id, id));
+}
+
+export async function deleteAppointment(id: string) {
+  const db = getDb();
+  if (!db) throw new Error("no db");
+  await db.delete(appointments).where(eq(appointments.id, id));
 }
 
 export async function listCases(query?: string) {

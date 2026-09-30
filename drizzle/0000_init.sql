@@ -8,10 +8,75 @@ CREATE TABLE IF NOT EXISTS inquiries (
   matter text NOT NULL,
   message text NOT NULL,
   status text NOT NULL DEFAULT 'new',
-  created_at timestamptz NOT NULL DEFAULT now()
+  conclusion text NOT NULL DEFAULT '',
+  closed_at timestamptz,
+  closed_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'new';
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS conclusion text NOT NULL DEFAULT '';
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS closed_at timestamptz;
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS closed_by uuid;
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+
+CREATE TABLE IF NOT EXISTS inquiry_notes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  inquiry_id uuid NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
+  body text NOT NULL,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS junk_phones (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone text NOT NULL UNIQUE,
+  reason text NOT NULL DEFAULT '',
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS office_tasks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  body text NOT NULL DEFAULT '',
+  status text NOT NULL DEFAULT 'open',
+  due_at timestamptz,
+  inquiry_id uuid REFERENCES inquiries(id) ON DELETE SET NULL,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS clients (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  full_name text NOT NULL,
+  phone text NOT NULL UNIQUE,
+  email text,
+  notes text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  body text NOT NULL DEFAULT '',
+  starts_at timestamptz NOT NULL,
+  client_id uuid NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+  client_name text NOT NULL DEFAULT '',
+  client_phone text NOT NULL DEFAULT '',
+  minutes text NOT NULL DEFAULT '',
+  status text NOT NULL DEFAULT 'scheduled',
+  inquiry_id uuid REFERENCES inquiries(id) ON DELETE SET NULL,
+  created_by uuid,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS client_id uuid REFERENCES clients(id) ON DELETE RESTRICT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS minutes text NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS notes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

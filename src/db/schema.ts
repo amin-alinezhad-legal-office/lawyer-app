@@ -15,7 +15,69 @@ export const inquiries = pgTable("inquiries", {
   matter: text("matter").notNull(),
   message: text("message").notNull(),
   status: text("status").notNull().default("new"),
+  conclusion: text("conclusion").notNull().default(""),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  closedBy: uuid("closed_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const inquiryNotes = pgTable("inquiry_notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  inquiryId: uuid("inquiry_id")
+    .notNull()
+    .references(() => inquiries.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const junkPhones = pgTable("junk_phones", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  phone: text("phone").notNull().unique(),
+  reason: text("reason").notNull().default(""),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const clients = pgTable("clients", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  fullName: text("full_name").notNull(),
+  phone: text("phone").notNull().unique(),
+  email: text("email"),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const officeTasks = pgTable("office_tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull().default(""),
+  status: text("status").notNull().default("open"),
+  dueAt: timestamp("due_at", { withTimezone: true }),
+  inquiryId: uuid("inquiry_id").references(() => inquiries.id, { onDelete: "set null" }),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const appointments = pgTable("appointments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull().default(""),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  clientId: uuid("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "restrict" }),
+  clientName: text("client_name").notNull().default(""),
+  clientPhone: text("client_phone").notNull().default(""),
+  minutes: text("minutes").notNull().default(""),
+  status: text("status").notNull().default("scheduled"),
+  inquiryId: uuid("inquiry_id").references(() => inquiries.id, { onDelete: "set null" }),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const siteNotes = pgTable("notes", {

@@ -51,7 +51,7 @@ export default async function ArchiveDetailPage({
           <textarea id="body" name="body" rows={8} className="field resize-y" defaultValue={row.body} />
         </OfficeField>
         <OfficeField label="پیوند به پرونده" name="caseId">
-          <select id="caseId" name="caseId" className="field bg-white" defaultValue={row.caseId ?? ""}>
+          <select id="caseId" name="caseId" className="select" defaultValue={row.caseId ?? ""}>
             <option value="">بدون پرونده</option>
             {cases.map((item) => (
               <option key={item.id} value={item.id}>

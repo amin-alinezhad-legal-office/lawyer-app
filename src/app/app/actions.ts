@@ -31,25 +31,41 @@ import {
 } from "@/db/rbac";
 import {
   addCaseNote,
+  addInquiryNote,
   createAboutSection,
+  createAppointment,
   createArchiveItem,
   createCase,
+  createClient,
   createFormTopic,
   createLetter,
+  createOfficeTask,
   createPersonalNote,
   createReminder,
   deleteAboutSection,
+  deleteAppointment,
+  deleteClient,
   deleteFormTopic,
+  deleteInquiry,
   deleteLetter,
+  deleteOfficeTask,
   deletePersonalNote,
   deleteReminder,
+  findOrCreateClient,
+  getInquiry,
+  markPhoneAsJunk,
+  setAppointmentStatus,
   setInquiryStatus,
+  setOfficeTaskDone,
   setReminderDone,
   updateAboutPageMeta,
   updateAboutSection,
+  updateAppointment,
   updateArchiveItem,
   updateCase,
+  updateClient,
   updateFormTopic,
+  updateInquiryFields,
   updateLetter,
   updatePersonalNote,
 } from "@/db/queries";
@@ -231,9 +247,279 @@ export async function deleteRoleAction(formData: FormData) {
 export async function markInquiry(formData: FormData) {
   await requirePermission("office.requests.update");
   const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "read");
+  const status = String(formData.get("status") ?? "open");
   await setInquiryStatus(id, status);
   refresh(["/app", "/app/requests"]);
+}
+
+export async function saveInquiryNoteAction(formData: FormData) {
+  const user = await requirePermission("office.requests.update");
+  const id = String(formData.get("id") ?? "");
+  const body = String(formData.get("body") ?? "").trim();
+  const conclusion = String(formData.get("conclusion") ?? "").trim();
+  if (!id) redirect("/app/requests");
+  if (body) {
+    await addInquiryNote({ inquiryId: id, body, createdBy: user.id });
+  }
+  if (conclusion) {
+    await updateInquiryFields(id, { conclusion, status: "open" });
+  } else if (body) {
+    await setInquiryStatus(id, "open");
+  }
+  refresh(["/app", "/app/requests"]);
+  redirect("/app/requests");
+}
+
+export async function inquiryNoAnswerAction(formData: FormData) {
+  const user = await requirePermission(["office.requests.update", "office.reminders.write"]);
+  const id = String(formData.get("id") ?? "");
+  const dueRaw = String(formData.get("dueAt") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+  const row = await getInquiry(id);
+  if (!row) redirect("/app/requests");
+  if (!dueRaw) redirect("/app/requests?error=due");
+  if (note) {
+    await addInquiryNote({ inquiryId: id, body: note, createdBy: user.id });
+  }
+  await createReminder({
+    title: `تماس مجدد با ${row.fullName}`,
+    body: note || `عدم پاسخ — ${row.phone}`,
+    dueAt: new Date(dueRaw),
+    caseId: null,
+  });
+  await updateInquiryFields(id, { status: "no_answer" });
+  refresh(["/app", "/app/requests", "/app/reminders"]);
+  redirect("/app/requests");
+}
+
+export async function inquiryJunkAction(formData: FormData) {
+  const user = await requirePermission("office.requests.update");
+  const id = String(formData.get("id") ?? "");
+  const note = String(formData.get("note") ?? "").trim() || "تماس هرز / بی‌ارزش";
+  const row = await getInquiry(id);
+  if (!row) redirect("/app/requests");
+  await markPhoneAsJunk({ phone: row.phone, reason: note, createdBy: user.id });
+  await addInquiryNote({ inquiryId: id, body: note, createdBy: user.id });
+  await updateInquiryFields(id, {
+    status: "junk",
+    conclusion: note,
+    closedAt: new Date(),
+    closedBy: user.id,
+  });
+  refresh(["/app", "/app/requests"]);
+  redirect("/app/requests");
+}
+
+export async function inquiryCloseAction(formData: FormData) {
+  const user = await requirePermission("office.requests.close");
+  const id = String(formData.get("id") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+  const conclusion = String(formData.get("conclusion") ?? "").trim() || note;
+  const row = await getInquiry(id);
+  if (!row) redirect("/app/requests");
+  if (note) {
+    await addInquiryNote({ inquiryId: id, body: note, createdBy: user.id });
+  }
+  await updateInquiryFields(id, {
+    status: "closed",
+    conclusion: conclusion || row.conclusion || "تماس انجام و بسته شد.",
+    closedAt: new Date(),
+    closedBy: user.id,
+  });
+  refresh(["/app", "/app/requests"]);
+  redirect("/app/requests");
+}
+
+export async function inquiryCallbackAction(formData: FormData) {
+  const user = await requirePermission(["office.requests.update", "office.tasks.write"]);
+  const id = String(formData.get("id") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+  const dueRaw = String(formData.get("dueAt") ?? "");
+  const row = await getInquiry(id);
+  if (!row) redirect("/app/requests");
+  if (note) {
+    await addInquiryNote({ inquiryId: id, body: note, createdBy: user.id });
+  }
+  await createOfficeTask({
+    title: `پیگیری ${row.fullName}`,
+    body: note || row.message,
+    dueAt: dueRaw ? new Date(dueRaw) : null,
+    inquiryId: id,
+    createdBy: user.id,
+  });
+  await updateInquiryFields(id, { status: "callback" });
+  refresh(["/app", "/app/requests", "/app/tasks"]);
+  redirect("/app/tasks");
+}
+
+export async function inquiryAppointmentAction(formData: FormData) {
+  const user = await requirePermission([
+    "office.requests.update",
+    "office.appointments.write",
+    "office.clients.write",
+  ]);
+  const id = String(formData.get("id") ?? "");
+  const startsRaw = String(formData.get("startsAt") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+  const row = await getInquiry(id);
+  if (!row) redirect("/app/requests");
+  if (!startsRaw) redirect("/app/requests?error=appointment");
+  if (note) {
+    await addInquiryNote({ inquiryId: id, body: note, createdBy: user.id });
+  }
+  const client = await findOrCreateClient({
+    fullName: row.fullName,
+    phone: row.phone,
+    email: row.email,
+  });
+  await createAppointment({
+    title: `جلسه با ${client.fullName}`,
+    body: note || row.message,
+    startsAt: new Date(startsRaw),
+    clientId: client.id,
+    inquiryId: id,
+    createdBy: user.id,
+  });
+  await updateInquiryFields(id, {
+    status: "appointment",
+    conclusion: note || row.conclusion,
+  });
+  refresh(["/app", "/app/requests", "/app/appointments", "/app/clients"]);
+  redirect("/app/appointments");
+}
+
+export async function deleteInquiryAction(formData: FormData) {
+  await requirePermission("office.requests.delete");
+  const id = String(formData.get("id") ?? "");
+  await deleteInquiry(id);
+  refresh(["/app", "/app/requests"]);
+  redirect("/app/requests");
+}
+
+export async function toggleTaskAction(formData: FormData) {
+  await requirePermission("office.tasks.write");
+  const id = String(formData.get("id") ?? "");
+  const done = String(formData.get("done") ?? "") === "1";
+  await setOfficeTaskDone(id, done);
+  refresh(["/app/tasks", "/app"]);
+}
+
+export async function removeTaskAction(formData: FormData) {
+  await requirePermission("office.tasks.write");
+  const id = String(formData.get("id") ?? "");
+  await deleteOfficeTask(id);
+  refresh(["/app/tasks", "/app"]);
+  redirect("/app/tasks");
+}
+
+export async function createTaskAction(formData: FormData) {
+  const user = await requirePermission("office.tasks.write");
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  const dueRaw = String(formData.get("dueAt") ?? "");
+  if (!title) redirect("/app/tasks?error=1");
+  await createOfficeTask({
+    title,
+    body,
+    dueAt: dueRaw ? new Date(dueRaw) : null,
+    createdBy: user.id,
+  });
+  refresh(["/app/tasks", "/app"]);
+  redirect("/app/tasks");
+}
+
+export async function createAppointmentAction(formData: FormData) {
+  const user = await requirePermission("office.appointments.write");
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  const startsRaw = String(formData.get("startsAt") ?? "");
+  const clientId = String(formData.get("clientId") ?? "").trim();
+  const minutes = String(formData.get("minutes") ?? "").trim();
+  if (!title || !startsRaw || !clientId) redirect("/app/appointments?error=1");
+  await createAppointment({
+    title,
+    body,
+    startsAt: new Date(startsRaw),
+    clientId,
+    minutes,
+    createdBy: user.id,
+  });
+  refresh(["/app/appointments", "/app/clients", "/app"]);
+  redirect("/app/appointments");
+}
+
+export async function updateAppointmentMinutesAction(formData: FormData) {
+  await requirePermission("office.appointments.write");
+  const id = String(formData.get("id") ?? "");
+  const minutes = String(formData.get("minutes") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  const clientId = String(formData.get("clientId") ?? "").trim();
+  if (!id) redirect("/app/appointments");
+  await updateAppointment(id, {
+    minutes,
+    title: title || undefined,
+    body,
+    clientId: clientId || undefined,
+  });
+  refresh(["/app/appointments", "/app/clients", "/app"]);
+  redirect("/app/appointments");
+}
+
+export async function setAppointmentStatusAction(formData: FormData) {
+  await requirePermission("office.appointments.write");
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "scheduled");
+  await setAppointmentStatus(id, status);
+  refresh(["/app/appointments", "/app"]);
+}
+
+export async function removeAppointmentAction(formData: FormData) {
+  await requirePermission("office.appointments.write");
+  const id = String(formData.get("id") ?? "");
+  await deleteAppointment(id);
+  refresh(["/app/appointments", "/app/clients", "/app"]);
+  redirect("/app/appointments");
+}
+
+export async function createClientAction(formData: FormData) {
+  await requirePermission("office.clients.write");
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  if (!fullName || !phone) redirect("/app/clients?error=1");
+  try {
+    await createClient({ fullName, phone, email: email || null, notes });
+  } catch {
+    redirect("/app/clients?error=dup");
+  }
+  refresh(["/app/clients", "/app/appointments"]);
+  redirect("/app/clients");
+}
+
+export async function updateClientAction(formData: FormData) {
+  await requirePermission("office.clients.write");
+  const id = String(formData.get("id") ?? "");
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  if (!id || !fullName) redirect("/app/clients?error=1");
+  await updateClient(id, { fullName, email: email || null, notes });
+  refresh(["/app/clients", "/app/appointments"]);
+  redirect("/app/clients");
+}
+
+export async function deleteClientAction(formData: FormData) {
+  await requirePermission("office.clients.write");
+  const id = String(formData.get("id") ?? "");
+  try {
+    await deleteClient(id);
+  } catch {
+    redirect("/app/clients?error=linked");
+  }
+  refresh(["/app/clients", "/app/appointments"]);
+  redirect("/app/clients");
 }
 
 export async function saveCaseAction(formData: FormData) {

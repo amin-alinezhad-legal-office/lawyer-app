@@ -68,65 +68,115 @@ export default async function TopicsPage({
       {rows.length === 0 ? (
         <EmptyState>حوزه‌ای ثبت نشده است.</EmptyState>
       ) : (
-        <div className="space-y-4">
-          {rows.map((row) => (
-            <form
-              key={row.id}
-              action={updateTopicAction}
-              className="space-y-4 border border-line bg-white p-5"
-            >
-              <input type="hidden" name="id" value={row.id} />
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-light text-secondary">شناسه داخلی: {row.slug}</p>
-                <button
-                  formAction={deleteTopicAction}
-                  type="submit"
-                  className="text-xs font-bold text-secondary"
+        <section className="space-y-3">
+          <h2 className="text-lg font-extrabold">حوزه‌های موجود</h2>
+          <p className="text-sm font-light text-secondary">برای ویرایش، هر حوزه را باز کنید.</p>
+          <div className="space-y-3">
+            {rows.map((row) => (
+              <details key={row.id} className="panel-details group border border-line bg-white">
+                <summary className="flex cursor-pointer items-center justify-between gap-4 px-5 py-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-extrabold">{row.title}</p>
+                      {row.active ? (
+                        <span className="rounded-[0.3rem] bg-mist px-2 py-0.5 text-[0.65rem] font-bold text-navy">
+                          فرم تماس
+                        </span>
+                      ) : null}
+                      {row.showOnSite ? (
+                        <span className="rounded-[0.3rem] bg-mist px-2 py-0.5 text-[0.65rem] font-bold text-navy">
+                          سایت
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 truncate text-xs font-light text-secondary">
+                      ترتیب {row.sortOrder}
+                      <span className="mx-2 text-line">·</span>
+                      <span className="ltr-isolate" dir="ltr">
+                        {row.slug}
+                      </span>
+                    </p>
+                  </div>
+                  <span
+                    aria-hidden
+                    className="panel-details-chevron shrink-0 text-secondary transition-transform duration-200"
+                  >
+                    ▾
+                  </span>
+                </summary>
+                <form
+                  action={updateTopicAction}
+                  className="space-y-4 border-t border-line p-5"
                 >
-                  حذف
-                </button>
-              </div>
-              <OfficeField label="عنوان" name="title">
-                <input id={`title-${row.id}`} name="title" required className="field" defaultValue={row.title} />
-              </OfficeField>
-              <OfficeField label="توضیح کوتاه" name="summary">
-                <input id={`summary-${row.id}`} name="summary" className="field" defaultValue={row.summary} />
-              </OfficeField>
-              <OfficeField label="شرح کامل" name="body">
-                <textarea
-                  id={`body-${row.id}`}
-                  name="body"
-                  rows={4}
-                  className="field resize-y"
-                  defaultValue={row.body}
-                />
-              </OfficeField>
-              <OfficeField label="ترتیب" name="sortOrder">
-                <input
-                  id={`sort-${row.id}`}
-                  name="sortOrder"
-                  type="number"
-                  className="field ltr-isolate"
-                  dir="ltr"
-                  defaultValue={row.sortOrder}
-                />
-              </OfficeField>
-              <div className="flex flex-wrap gap-5 text-sm font-bold">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" name="active" value="1" defaultChecked={row.active} />
-                  فعال در فرم تماس
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" name="showOnSite" value="1" defaultChecked={row.showOnSite} />
-                  نمایش در سایت
-                </label>
-              </div>
-              <button type="submit" className="border border-line px-4 py-2 text-sm font-bold">
-                ذخیره تغییرات
-              </button>
-            </form>
-          ))}
-        </div>
+                  <input type="hidden" name="id" value={row.id} />
+                  <div className="flex justify-end">
+                    <button
+                      formAction={deleteTopicAction}
+                      type="submit"
+                      className="text-xs font-bold text-secondary"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                  <OfficeField label="عنوان" name="title">
+                    <input
+                      id={`title-${row.id}`}
+                      name="title"
+                      required
+                      className="field"
+                      defaultValue={row.title}
+                    />
+                  </OfficeField>
+                  <OfficeField label="توضیح کوتاه" name="summary">
+                    <input
+                      id={`summary-${row.id}`}
+                      name="summary"
+                      className="field"
+                      defaultValue={row.summary}
+                    />
+                  </OfficeField>
+                  <OfficeField label="شرح کامل" name="body">
+                    <textarea
+                      id={`body-${row.id}`}
+                      name="body"
+                      rows={4}
+                      className="field resize-y"
+                      defaultValue={row.body}
+                    />
+                  </OfficeField>
+                  <OfficeField label="ترتیب" name="sortOrder">
+                    <input
+                      id={`sort-${row.id}`}
+                      name="sortOrder"
+                      type="number"
+                      className="field ltr-isolate"
+                      dir="ltr"
+                      defaultValue={row.sortOrder}
+                    />
+                  </OfficeField>
+                  <div className="flex flex-wrap gap-5 text-sm font-bold">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="active" value="1" defaultChecked={row.active} />
+                      فعال در فرم تماس
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        name="showOnSite"
+                        value="1"
+                        defaultChecked={row.showOnSite}
+                      />
+                      نمایش در سایت
+                    </label>
+                  </div>
+                  <button type="submit" className="border border-line px-4 py-2 text-sm font-bold">
+                    ذخیره تغییرات
+                  </button>
+                </form>
+              </details>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

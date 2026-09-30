@@ -30,7 +30,7 @@ export default async function NewCasePage({
           <input id="clientPhone" name="clientPhone" className="field ltr-isolate" dir="ltr" />
         </OfficeField>
         <OfficeField label="وضعیت" name="status">
-          <select id="status" name="status" className="field bg-white" defaultValue="open">
+          <select id="status" name="status" className="select" defaultValue="open">
             {caseStatuses.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}

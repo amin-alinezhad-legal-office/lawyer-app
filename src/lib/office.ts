@@ -10,6 +10,9 @@ export type AppNavItem = {
 export const appNav: AppNavItem[] = [
   { href: "/app", label: "میز کار", exact: true, permission: "office.dashboard.view" },
   { href: "/app/requests", label: "درخواست‌ها", permission: "office.requests.read" },
+  { href: "/app/tasks", label: "کارها", permission: "office.tasks.read" },
+  { href: "/app/appointments", label: "وقت‌ها", permission: "office.appointments.read" },
+  { href: "/app/clients", label: "موکلان", permission: "office.clients.read" },
   { href: "/app/about", label: "درباره", permission: "site.about.read" },
   { href: "/app/topics", label: "حوزه‌های کاری", permission: "site.topics.read" },
   { href: "/app/cases", label: "پرونده‌ها", permission: "office.cases.read" },

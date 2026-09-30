@@ -246,7 +246,7 @@ export function DateTimePicker({
               <label className="flex flex-1 flex-col gap-1 text-[0.65rem] font-bold text-secondary">
                 ساعت
                 <select
-                  className="field bg-transparent py-2 text-sm font-bold text-navy"
+                  className="select py-2 text-sm font-bold"
                   value={hours}
                   onChange={(event) => applyTime(Number(event.target.value), minutes)}
                 >
@@ -261,7 +261,7 @@ export function DateTimePicker({
               <label className="flex flex-1 flex-col gap-1 text-[0.65rem] font-bold text-secondary">
                 دقیقه
                 <select
-                  className="field bg-transparent py-2 text-sm font-bold text-navy"
+                  className="select py-2 text-sm font-bold"
                   value={minutes}
                   onChange={(event) => applyTime(hours, Number(event.target.value))}
                 >
