@@ -54,7 +54,7 @@ export function AppShell({
               <Link
                 href="/app/search"
                 aria-label="جستجو"
-                className="inline-flex h-10 w-10 items-center justify-center border border-line text-navy transition-colors hover:bg-mist"
+                className="inline-flex h-10 w-10 items-center justify-center text-navy transition-colors hover:bg-mist"
               >
                 <Search className="h-4 w-4" strokeWidth={2.25} aria-hidden />
               </Link>
