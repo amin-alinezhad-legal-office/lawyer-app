@@ -21,7 +21,7 @@ export function AppShell({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-dvh bg-mist text-navy">
+    <div className="min-h-dvh bg-mist text-navy print:bg-white">
       <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur-sm print:hidden">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
           <div className="min-w-0">
@@ -81,7 +81,9 @@ export function AppShell({
           </div>
         </nav>
       </header>
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-10">{children}</div>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-10 print:max-w-none print:px-0 print:py-0">
+        {children}
+      </div>
     </div>
   );
 }

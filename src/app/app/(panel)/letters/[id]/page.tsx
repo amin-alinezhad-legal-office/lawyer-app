@@ -24,12 +24,7 @@ export default async function LetterEditPage({ params }: { params: Promise<{ id:
         نامه‌ها
       </Link>
       <h1 className="text-3xl font-extrabold">ویرایش نامه</h1>
-      <LetterEditor
-        id={row.id}
-        initialTitle={row.title}
-        initialHtml={row.bodyHtml}
-        initialShowHeader={row.showHeader}
-      />
+      <LetterEditor id={row.id} initialTitle={row.title} initialHtml={row.bodyHtml} />
     </div>
   );
 }

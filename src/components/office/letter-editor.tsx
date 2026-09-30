@@ -13,16 +13,13 @@ export function LetterEditor({
   id,
   initialTitle,
   initialHtml,
-  initialShowHeader,
 }: {
   id?: string;
   initialTitle: string;
   initialHtml: string;
-  initialShowHeader: boolean;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
-  const [showHeader, setShowHeader] = useState(initialShowHeader);
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -56,7 +53,7 @@ export function LetterEditor({
           id,
           title: title.trim() || "بدون عنوان",
           bodyHtml: editor.getHTML(),
-          showHeader,
+          showHeader: true,
         });
         setMessage("ذخیره شد.");
         if (!id) router.replace(`/app/letters/${result.id}`);
@@ -69,25 +66,15 @@ export function LetterEditor({
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-        <label className="block">
-          <span className="mb-2 block text-sm font-bold">عنوان</span>
-          <input
-            className="field"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="عنوان نامه"
-          />
-        </label>
-        <label className="flex items-center gap-2 pb-3 text-sm font-bold">
-          <input
-            type="checkbox"
-            checked={showHeader}
-            onChange={(event) => setShowHeader(event.target.checked)}
-          />
-          چاپ با سربرگ
-        </label>
-      </div>
+      <label className="block">
+        <span className="mb-2 block text-sm font-bold">عنوان</span>
+        <input
+          className="field"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="عنوان نامه"
+        />
+      </label>
 
       <div className="flex flex-wrap gap-2 border border-line bg-white p-2 print:hidden">
         <ToolbarButton onClick={() => editor?.chain().focus().toggleBold().run()} active={editor?.isActive("bold")}>

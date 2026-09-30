@@ -23,7 +23,7 @@ export default async function LettersPage() {
         <div>
           <h1 className="text-3xl font-extrabold">نامه‌ها</h1>
           <p className="mt-2 text-sm font-light text-secondary">
-            نوشتن، ذخیره و چاپ با سربرگ یا بدون سربرگ.
+            نوشتن، ذخیره و چاپ روی A4 یا A5 با سربرگ دیجیتال یا کاغذ از پیش چاپ‌شده.
           </p>
         </div>
         <Link href="/app/letters/new" className="btn bg-navy px-4 py-3 text-sm font-bold text-white">
@@ -41,7 +41,7 @@ export default async function LettersPage() {
                   {row.title}
                 </Link>
                 <p className="mt-1 text-xs font-light text-secondary">
-                  {formatPersianDate(row.updatedAt)} · {row.showHeader ? "با سربرگ" : "بدون سربرگ"}
+                  {formatPersianDate(row.updatedAt)}
                 </p>
               </div>
               <div className="flex gap-2">

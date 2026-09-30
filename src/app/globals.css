@@ -60,13 +60,118 @@ button,
   border-bottom-color: #1a3571;
 }
 
+.select {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%235f729c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.9rem center;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  color: var(--navy);
+  font: inherit;
+  line-height: 1.4;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--navy);
+}
+
+.select:disabled {
+  background-color: var(--mist);
+  color: var(--secondary);
+  cursor: not-allowed;
+}
+
+.panel-details > summary {
+  list-style: none;
+}
+
+.panel-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel-details[open] > summary .panel-details-chevron {
+  transform: rotate(180deg);
+}
+
 .ltr-isolate {
   direction: ltr;
   unicode-bidi: isolate;
   text-align: start;
 }
 
+.letter-print-measure {
+  color: #1a3571;
+  font: inherit;
+  line-height: 2.25rem;
+  text-align: start;
+}
+
+.letter-print-measure .letter-print-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.letter-print-measure p {
+  margin: 0 0 1rem;
+}
+
+.letter-print-measure ul,
+.letter-print-measure ol {
+  margin: 0 0 1rem;
+  padding-inline-start: 1.5rem;
+}
+
+.letter-print-measure ul {
+  list-style: disc;
+}
+
+.letter-print-measure ol {
+  list-style: decimal;
+}
+
+.letter-page {
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+}
+
+.letter-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
 @media print {
+  @page {
+    margin: 0;
+  }
+
+  @page letter-a4 {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  @page letter-a5 {
+    size: A5 portrait;
+    margin: 0;
+  }
+
+  .letter-page-a4 {
+    page: letter-a4;
+  }
+
+  .letter-page-a5 {
+    page: letter-a5;
+  }
+
   body {
     background: white !important;
   }
@@ -75,8 +180,23 @@ button,
     display: none !important;
   }
 
-  .letter-sheet {
-    max-width: none !important;
+  .letter-print-studio {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .letter-print-pages {
+    gap: 0 !important;
+    align-items: stretch !important;
+  }
+
+  .letter-print-page-wrap {
+    margin: 0 !important;
+  }
+
+  .letter-page {
     box-shadow: none !important;
+    margin: 0 !important;
   }
 }
