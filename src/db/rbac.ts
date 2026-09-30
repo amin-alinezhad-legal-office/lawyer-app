@@ -27,8 +27,8 @@ export type SessionUser = {
   permissions: PermissionKey[];
 };
 
-const ADMIN_PHONE = "09124971667";
-const ADMIN_PASSWORD = "change-me";
+const LAWYER_PHONE = "09122391810";
+const LAWYER_PASSWORD = "change-lawyer";
 const FAIL_LIMIT = 3;
 const LOCK_MINUTES = 15;
 
@@ -101,20 +101,20 @@ export async function ensureRbacSeed() {
         }
       }
 
-      const [adminRole] = await db.select().from(roles).where(eq(roles.slug, "admin")).limit(1);
-      if (!adminRole) return;
+      const [lawyerRole] = await db.select().from(roles).where(eq(roles.slug, "lawyer")).limit(1);
+      if (!lawyerRole) return;
 
-      const [adminUser] = await db
+      const [lawyerUser] = await db
         .select()
         .from(users)
-        .where(eq(users.phone, ADMIN_PHONE))
+        .where(eq(users.phone, LAWYER_PHONE))
         .limit(1);
-      if (!adminUser) {
+      if (!lawyerUser) {
         await db.insert(users).values({
-          phone: ADMIN_PHONE,
-          fullName: "ادمین سیستم",
-          passwordHash: hashPassword(ADMIN_PASSWORD),
-          roleId: adminRole.id,
+          phone: LAWYER_PHONE,
+          fullName: "وکیل",
+          passwordHash: hashPassword(LAWYER_PASSWORD),
+          roleId: lawyerRole.id,
           active: true,
         });
       }
