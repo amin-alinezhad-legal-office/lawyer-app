@@ -85,7 +85,7 @@ export function InstallAppButton({
           alt="Progressive Web App"
           width={320}
           height={96}
-          className="h-auto w-full max-w-[11.5rem]"
+          className="h-auto w-full max-w-[8.5rem]"
           priority={false}
         />
       </button>

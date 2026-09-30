@@ -83,7 +83,7 @@ export function AppShell({
 
       <aside
         id="office-sidebar"
-        className={`fixed inset-y-0 right-0 z-50 flex w-[min(20rem,88vw)] flex-col bg-navy text-white shadow-[-18px_0_40px_rgba(15,33,66,0.35)] transition-transform duration-300 print:hidden ${
+        className={`fixed inset-y-0 right-0 z-50 flex w-[min(20rem,88vw)] flex-col rounded-tl-[1.25rem] bg-navy text-white transition-transform duration-300 print:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         aria-hidden={!open}
