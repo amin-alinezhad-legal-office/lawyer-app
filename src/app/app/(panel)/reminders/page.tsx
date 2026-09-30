@@ -3,6 +3,7 @@ import {
   saveReminderAction,
   toggleReminderAction,
 } from "@/app/app/actions";
+import { DateTimePicker } from "@/components/office/date-time-picker";
 import { OfficeSelect } from "@/components/office/office-select";
 import { EmptyState, OfficeField } from "@/components/office/ui";
 import { listCases, listReminders } from "@/db/queries";
@@ -50,7 +51,7 @@ export default async function RemindersPage({
           <textarea id="body" name="body" rows={3} className="field resize-y" />
         </OfficeField>
         <OfficeField label="موعد" name="dueAt">
-          <input id="dueAt" name="dueAt" type="datetime-local" required className="field ltr-isolate" dir="ltr" />
+          <DateTimePicker id="dueAt" name="dueAt" required aria-label="موعد یادآور" />
         </OfficeField>
         <OfficeField label="پرونده مرتبط" name="caseId">
           <OfficeSelect
