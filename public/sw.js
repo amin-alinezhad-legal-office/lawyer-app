@@ -1,4 +1,4 @@
-const CACHE = "office-shell-v4";
+const CACHE = "office-shell-v5";
 const PRECACHE = [
   "/app",
   "/app/login",
@@ -6,6 +6,7 @@ const PRECACHE = [
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-512-maskable.png",
+  "/apple-icon.png",
 ];
 
 self.addEventListener("install", (event) => {
