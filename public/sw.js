@@ -1,5 +1,5 @@
-const CACHE = "office-shell-v1";
-const PRECACHE = ["/app", "/app/login", "/manifest.webmanifest", "/icons/icon-192.png"];
+const CACHE = "office-shell-v2";
+const PRECACHE = ["/app", "/app/login", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));

@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "دفتر علی نژاد",
+    statusBarStyle: "black-translucent",
+    title: "Alinezhad App",
   },
 };
 
