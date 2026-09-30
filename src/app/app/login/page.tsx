@@ -73,16 +73,8 @@ export default async function AppLoginPage({
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-6xl flex-col justify-center px-6 py-12 md:px-10 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:py-16">
         <div className="mb-12 lg:mb-0">
-          <Link href="/" className="inline-flex items-center gap-3 text-white/80 transition-opacity hover:text-white">
-            <Image
-              src="/brand/emblem-white.png"
-              alt=""
-              width={475}
-              height={448}
-              className="h-10 w-auto"
-              priority
-            />
-            <span className="text-sm font-light">بازگشت به سایت</span>
+          <Link href="/" className="inline-flex items-center text-sm font-light text-white/80 transition-opacity hover:text-white">
+            بازگشت به سایت
           </Link>
 
           <p className="mt-10 text-sm font-light text-white/65">
