@@ -203,11 +203,8 @@ export default async function AppLoginPage({
               بعد از سه ورود ناموفق، جمع امنیتی فعال می‌شود. حساب تازه فقط از داخل پنل ساخته می‌شود.
             </p>
 
-            <div className="mt-5">
-              <InstallAppButton
-                label="ذخیره اپ روی دستگاه"
-                className="btn w-full border border-white/25 bg-white/10 px-5 py-3.5 text-sm font-bold text-white transition-opacity hover:bg-white/15"
-              />
+            <div className="mt-5 flex justify-center">
+              <InstallAppButton tipPlacement="below" />
             </div>
           </div>
 
