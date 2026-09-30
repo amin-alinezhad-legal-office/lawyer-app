@@ -12,9 +12,7 @@ import {
 import { uploadOfficeFile } from "@/lib/blob";
 import {
   clearCaptchaCookie,
-  createCaptchaChallenge,
   readCaptchaCookie,
-  setCaptchaCookie,
   verifyCaptchaAnswer,
 } from "@/lib/captcha";
 import { normalizePhone } from "@/lib/format";
@@ -82,10 +80,10 @@ export async function loginApp(formData: FormData) {
   if (gate.locked) redirect("/app/login?error=locked");
 
   if (gate.captchaRequired) {
-    const token = (await readCaptchaCookie()) || String(formData.get("captchaToken") ?? "");
+    // Prefer the token shown on the form; cookie can lag behind a freshly rendered challenge.
+    const token =
+      String(formData.get("captchaToken") ?? "") || (await readCaptchaCookie());
     if (!token || !verifyCaptchaAnswer(token, captchaAnswer)) {
-      const challenge = createCaptchaChallenge();
-      await setCaptchaCookie(challenge.token);
       const q = new URLSearchParams({
         error: "captcha",
         captcha: "1",
@@ -98,8 +96,6 @@ export async function loginApp(formData: FormData) {
   const result = await authenticateUser(phone, password);
   if (!result.ok) {
     const fail = await recordLoginFailure(phone);
-    const challenge = createCaptchaChallenge();
-    await setCaptchaCookie(challenge.token);
     const q = new URLSearchParams();
     q.set("phone", normalizePhone(phone) || phone);
     if (fail.locked) {

@@ -3,9 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { loginApp } from "@/app/app/actions";
+import { PasswordField } from "@/components/office/password-field";
 import { getLoginGate } from "@/db/rbac";
 import { isAppAuthed } from "@/lib/auth";
-import { createCaptchaChallenge, setCaptchaCookie } from "@/lib/captcha";
+import { createCaptchaChallenge } from "@/lib/captcha";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -53,7 +54,6 @@ export default async function AppLoginPage({
     const challenge = createCaptchaChallenge();
     captchaPrompt = toPersianDigits(challenge.prompt);
     captchaToken = challenge.token;
-    await setCaptchaCookie(challenge.token);
   }
 
   return (
@@ -152,14 +152,9 @@ export default async function AppLoginPage({
 
               <label className="block" htmlFor="password">
                 <span className="mb-2 block text-sm font-bold">رمز ورود</span>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
+                <PasswordField
                   required
-                  autoComplete="current-password"
-                  className="w-full rounded-[0.4rem] border border-white/20 bg-white/10 px-4 py-3 text-white outline-none placeholder:text-white/35 focus:border-white/55"
-                  placeholder="••••••••"
+                  className="ltr-isolate w-full rounded-[0.4rem] border border-white/20 bg-white/10 px-4 py-3 text-white outline-none placeholder:text-white/35 focus:border-white/55"
                 />
               </label>
 
