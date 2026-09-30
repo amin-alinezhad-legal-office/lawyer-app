@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #1a3571;
+  --paper: #ffffff;
+  --line: #bac2d4;
+  --mist: #edf0f4;
+  --secondary: #5f729c;
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-paper: var(--paper);
+  --color-line: var(--line);
+  --color-mist: var(--mist);
+  --color-secondary: var(--secondary);
+  --font-sans: var(--font-vazir), "Vazirmatn", Tahoma, sans-serif;
+}
+
+html {
+  direction: rtl;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+body {
+  background: var(--paper);
+  color: var(--navy);
+  font-family: var(--font-vazir), "Vazirmatn", Tahoma, sans-serif;
+  text-align: start;
+}
+
+::selection {
+  background: #1a3571;
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid #1a3571;
+  outline-offset: 3px;
+}
+
+button,
+.btn {
+  border-radius: 0.4rem;
+}
+
+.field {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #bac2d4;
+  background: transparent;
+  padding: 0.7rem 0;
+  color: #1a3571;
+  font: inherit;
+}
+
+.field:focus {
+  outline: none;
+  border-bottom-color: #1a3571;
+}
+
+.ltr-isolate {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .letter-sheet {
+    max-width: none !important;
+    box-shadow: none !important;
+  }
+}
