@@ -3,6 +3,7 @@ import {
   saveReminderAction,
   toggleReminderAction,
 } from "@/app/app/actions";
+import { OfficeSelect } from "@/components/office/office-select";
 import { EmptyState, OfficeField } from "@/components/office/ui";
 import { listCases, listReminders } from "@/db/queries";
 import { formatPersianDate } from "@/lib/format";
@@ -27,6 +28,12 @@ export default async function RemindersPage({
     return <EmptyState>خواندن یادآورها ممکن نشد.</EmptyState>;
   }
 
+  const caseOptions = cases.map((item) => ({
+    value: item.id,
+    label: item.title,
+    hint: item.clientName || undefined,
+  }));
+
   return (
     <div className="space-y-8">
       <div>
@@ -46,14 +53,13 @@ export default async function RemindersPage({
           <input id="dueAt" name="dueAt" type="datetime-local" required className="field ltr-isolate" dir="ltr" />
         </OfficeField>
         <OfficeField label="پرونده مرتبط" name="caseId">
-          <select id="caseId" name="caseId" className="field bg-white" defaultValue="">
-            <option value="">بدون پرونده</option>
-            {cases.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.title}
-              </option>
-            ))}
-          </select>
+          <OfficeSelect
+            id="caseId"
+            name="caseId"
+            placeholder="بدون پرونده"
+            options={caseOptions}
+            aria-label="پرونده مرتبط"
+          />
         </OfficeField>
         <button type="submit" className="bg-navy px-4 py-3 text-sm font-bold text-white">
           افزودن یادآور
